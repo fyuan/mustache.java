@@ -47,10 +47,23 @@
   </properties>
 
   <dependencies>
+    <!-- Guava -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>11.0</version>
+    </dependency>
+
+    <!-- ASM -->
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>4.0</version>
     </dependency>
 
     <!-- Scala -->

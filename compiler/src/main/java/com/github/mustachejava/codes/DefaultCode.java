@@ -7,15 +7,22 @@ import com.github.mustachejava.ObjectHandler;
 import com.github.mustachejava.TemplateContext;
 import com.github.mustachejava.util.GuardException;
 import com.github.mustachejava.util.Wrapper;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Simplest possible code implementaion with some default shared behavior
  */
-public class DefaultCode implements Code {
+public class DefaultCode implements Code, Opcodes {
   private StringBuilder sb = new StringBuilder();
   protected String appended;
 
@@ -180,14 +187,74 @@ public class DefaultCode implements Code {
     return writer;
   }
 
+  private static AtomicInteger seq = new AtomicInteger(0);
+
   protected Writer runCodes(Writer writer, Object[] scopes) {
     Code[] codes = getCodes();
     if (codes != null) {
       for (Code code : codes) {
         writer = code.execute(writer, scopes);
       }
+      if (codes.length > 1) {
+        // We haven't compiled them yet, lets compile them
+        String className = "com.github.mustachejava.codes.Compiled" + this.getClass().getSimpleName() + seq.getAndIncrement();
+        try {
+          ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+          String filename = className.replace('.', '/');
+          cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, filename, null, "com/github/mustachejava/codes/BaseCode", null);
+          cw.visitSource(filename + ".java", null);
+          {
+            Method constructor = Method.getMethod("void <init> (com.github.mustachejava.Code[])");
+            GeneratorAdapter ga = new GeneratorAdapter(ACC_PUBLIC, constructor, null, null, cw);
+            ga.loadThis();
+            ga.loadArg(0);
+            ga.invokeConstructor(getType(BaseCode.class), constructor);
+            ga.returnValue();
+            ga.endMethod();
+          }
+          {
+            Method executeMethod = Method.getMethod("java.io.Writer execute(java.io.Writer, Object[])");
+            GeneratorAdapter ga = new GeneratorAdapter(ACC_PUBLIC, executeMethod, null, null, cw);
+            ga.visitVarInsn(ALOAD, 0);
+            ga.getField(getType(BaseCode.class), "codes", getType(Code[].class));
+            ga.visitVarInsn(ASTORE, 3);
+            int i = 0;
+            for (Code code : codes) {
+              ga.visitVarInsn(ALOAD, 3);
+              ga.push(i++);
+              ga.arrayLoad(getType(Code.class));
+              ga.checkCast(getType(code.getClass()));
+              ga.visitVarInsn(ALOAD, 1);
+              ga.visitVarInsn(ALOAD, 2);
+              ga.invokeVirtual(getType(code.getClass()), executeMethod);
+              ga.visitVarInsn(ASTORE, 1);
+            }
+            ga.visitVarInsn(ALOAD, 1);
+            ga.returnValue();
+            ga.endMethod();
+          }
+          cw.visitEnd();
+          Class<?> aClass = defineClass(className, cw.toByteArray());
+          Code o = (Code) aClass.getConstructor(Code[].class).newInstance(new Object[] { codes} );
+          setCodes(new Code[]{o});
+        } catch (Exception e) {
+          e.printStackTrace();
+          throw new MustacheException("Compiler failed: " + e);
+        }
+      }
     }
     return writer;
+  }
+
+  private static final CompilerClassLoader comilerCL = new CompilerClassLoader();
+  private static class CompilerClassLoader extends ClassLoader {
+    public Class<?> defineClass(final String name, final byte[] b) {
+      return defineClass(name, b, 0, b.length);
+    }
+  }
+
+  public static Class<?> defineClass(String name, byte[] b) {
+    return comilerCL.defineClass(name, b);
   }
 
   @Override
