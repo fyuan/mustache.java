@@ -197,53 +197,56 @@ public class DefaultCode implements Code, Opcodes {
       }
       if (codes.length > 1) {
         // We haven't compiled them yet, lets compile them
-        String className = "com.github.mustachejava.codes.Compiled" + this.getClass().getSimpleName() + seq.getAndIncrement();
-        try {
-          ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-          String filename = className.replace('.', '/');
-          cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, filename, null, "com/github/mustachejava/codes/BaseCode", null);
-          cw.visitSource(filename + ".java", null);
-          {
-            Method constructor = Method.getMethod("void <init> (com.github.mustachejava.Code[])");
-            GeneratorAdapter ga = new GeneratorAdapter(ACC_PUBLIC, constructor, null, null, cw);
-            ga.loadThis();
-            ga.loadArg(0);
-            ga.invokeConstructor(getType(BaseCode.class), constructor);
-            ga.returnValue();
-            ga.endMethod();
-          }
-          {
-            Method executeMethod = Method.getMethod("java.io.Writer execute(java.io.Writer, Object[])");
-            GeneratorAdapter ga = new GeneratorAdapter(ACC_PUBLIC, executeMethod, null, null, cw);
-            ga.visitVarInsn(ALOAD, 0);
-            ga.getField(getType(BaseCode.class), "codes", getType(Code[].class));
-            ga.visitVarInsn(ASTORE, 3);
-            int i = 0;
-            for (Code code : codes) {
-              ga.visitVarInsn(ALOAD, 3);
-              ga.push(i++);
-              ga.arrayLoad(getType(Code.class));
-              ga.checkCast(getType(code.getClass()));
-              ga.visitVarInsn(ALOAD, 1);
-              ga.visitVarInsn(ALOAD, 2);
-              ga.invokeVirtual(getType(code.getClass()), executeMethod);
-              ga.visitVarInsn(ASTORE, 1);
-            }
-            ga.visitVarInsn(ALOAD, 1);
-            ga.returnValue();
-            ga.endMethod();
-          }
-          cw.visitEnd();
-          Class<?> aClass = defineClass(className, cw.toByteArray());
-          Code o = (Code) aClass.getConstructor(Code[].class).newInstance(new Object[] { codes} );
-          setCodes(new Code[]{o});
-        } catch (Exception e) {
-          e.printStackTrace();
-          throw new MustacheException("Compiler failed: " + e);
-        }
+        compileCodes(codes);
       }
     }
     return writer;
+  }
+
+  private void compileCodes(Code[] codes) {
+    String className = "com.github.mustachejava.codes.Compiled" + this.getClass().getSimpleName() + seq.getAndIncrement();
+    try {
+      ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+      String filename = className.replace('.', '/');
+      cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, filename, null, "com/github/mustachejava/codes/BaseCode", null);
+      cw.visitSource(filename + ".java", null);
+      {
+        Method constructor = Method.getMethod("void <init> (com.github.mustachejava.Code[])");
+        GeneratorAdapter ga = new GeneratorAdapter(ACC_PUBLIC, constructor, null, null, cw);
+        ga.loadThis();
+        ga.loadArg(0);
+        ga.invokeConstructor(getType(BaseCode.class), constructor);
+        ga.returnValue();
+        ga.endMethod();
+      }
+      {
+        Method executeMethod = Method.getMethod("java.io.Writer execute(java.io.Writer, Object[])");
+        GeneratorAdapter ga = new GeneratorAdapter(ACC_PUBLIC, executeMethod, null, null, cw);
+        ga.visitVarInsn(ALOAD, 0);
+        ga.getField(getType(BaseCode.class), "codes", getType(Code[].class));
+        ga.visitVarInsn(ASTORE, 3);
+        int i = 0;
+        for (Code code : codes) {
+          ga.visitVarInsn(ALOAD, 3);
+          ga.push(i++);
+          ga.arrayLoad(getType(Code.class));
+          ga.checkCast(getType(code.getClass()));
+          ga.visitVarInsn(ALOAD, 1);
+          ga.visitVarInsn(ALOAD, 2);
+          ga.invokeVirtual(getType(code.getClass()), executeMethod);
+          ga.visitVarInsn(ASTORE, 1);
+        }
+        ga.visitVarInsn(ALOAD, 1);
+        ga.returnValue();
+        ga.endMethod();
+      }
+      cw.visitEnd();
+      Class<?> aClass = defineClass(className, cw.toByteArray());
+      Code o = (Code) aClass.getConstructor(Code[].class).newInstance(new Object[] { codes} );
+      setCodes(new Code[]{o});
+    } catch (Exception e) {
+      throw new MustacheException("Codes compile failed", e);
+    }
   }
 
   private static final CompilerClassLoader comilerCL = new CompilerClassLoader();
