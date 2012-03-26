@@ -1,5 +1,6 @@
 package com.github.mustachejava.codes;
 
+import com.github.mustachejava.Code;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Iteration;
 import com.github.mustachejava.Mustache;
@@ -23,7 +24,7 @@ import java.util.concurrent.ExecutorService;
  * Time: 2:57 PM
  * To change this template use File | Settings | File Templates.
  */
-public class IterableCode extends DefaultCode implements Iteration {
+public class IterableCode extends Code implements Iteration {
 
   private final String variable;
   private DefaultMustacheFactory cf;

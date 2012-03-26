@@ -9,7 +9,7 @@ import java.util.List;
  * The default implementation that builds up Code lists
  */
 public class DefaultMustacheVisitor implements MustacheVisitor {
-  private static final Code EOF = new DefaultCode();
+  private static final Code EOF = new Code();
 
   protected final List<Code> list = new LinkedList<Code>();
   protected DefaultMustacheFactory cf;
@@ -20,7 +20,7 @@ public class DefaultMustacheVisitor implements MustacheVisitor {
 
   @Override
   public Mustache mustache(TemplateContext templateContext) {
-    return new DefaultMustache(templateContext, cf, list.toArray(new Code[list.size()]), templateContext.file());
+    return new Mustache(templateContext, cf, list.toArray(new Code[list.size()]), templateContext.file());
   }
 
   @Override

@@ -2,7 +2,6 @@ package com.github.mustachejava;
 
 import java.io.Reader;
 import java.io.Writer;
-import java.util.List;
 
 /**
  * Factory for creating codes

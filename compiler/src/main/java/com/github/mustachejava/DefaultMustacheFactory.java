@@ -1,5 +1,9 @@
 package com.github.mustachejava;
 
+import com.github.mustachejava.reflect.ReflectionObjectHandler;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,24 +14,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
-
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-
-import com.github.mustachejava.codes.DefaultCode;
-import com.github.mustachejava.codes.ExtendCode;
-import com.github.mustachejava.codes.ExtendNameCode;
-import com.github.mustachejava.codes.IterableCode;
-import com.github.mustachejava.codes.NotIterableCode;
-import com.github.mustachejava.codes.PartialCode;
-import com.github.mustachejava.codes.ValueCode;
-import com.github.mustachejava.codes.WriteCode;
-import com.github.mustachejava.reflect.ReflectionObjectHandler;
 
 /**
  * Simplest possible code factory

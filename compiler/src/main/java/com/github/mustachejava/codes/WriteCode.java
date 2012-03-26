@@ -3,6 +3,7 @@ package com.github.mustachejava.codes;
 import java.io.IOException;
 import java.io.Writer;
 
+import com.github.mustachejava.Code;
 import com.github.mustachejava.MustacheException;
 
 /**
@@ -12,7 +13,7 @@ import com.github.mustachejava.MustacheException;
 * Time: 3:13 PM
 * To change this template use File | Settings | File Templates.
 */
-public class WriteCode extends DefaultCode {
+public class WriteCode extends Code {
   private String text;
 
   public WriteCode(String text) {

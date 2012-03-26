@@ -1,15 +1,15 @@
 package com.github.mustachejava.codes;
 
-import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.github.mustachejava.Code;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheException;
 import com.github.mustachejava.MustacheFactory;
 import com.github.mustachejava.TemplateContext;
+
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Extending a template.
@@ -36,7 +36,7 @@ public class ExtendCode extends PartialCode {
         ExtendNameCode extendReplaceCode = replaceMap.get(enc.getName());
         if (extendReplaceCode != null) {
           newcodes[i] = extendReplaceCode;
-          extendReplaceCode.appended = enc.appended;
+          extendReplaceCode.setAppended(enc.getAppended());
         } else {
           enc.setCodes(replaceCodes(enc.getCodes(), replaceMap));
         }
