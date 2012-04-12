@@ -146,6 +146,11 @@ public class DefaultCode implements Code {
         } else {
           sb.append(":");
           sb.append(scope.getClass().getName());
+          if (scope instanceof Map) {
+            Map map = (Map) scope;
+            sb.append(":");
+            sb.append(map.containsKey(name));
+          }
         }
       }
     }

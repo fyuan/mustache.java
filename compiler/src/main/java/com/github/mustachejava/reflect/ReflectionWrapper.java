@@ -13,10 +13,6 @@ import java.lang.reflect.Method;
  * Used for evaluating values at a callsite
  */
 public class ReflectionWrapper extends GuardedWrapper {
-  // Context
-  protected int scopeIndex;
-  protected Wrapper[] wrappers;
-  protected boolean[] mapGuard;
 
   // Dispatch
   protected final Method method;
@@ -25,8 +21,7 @@ public class ReflectionWrapper extends GuardedWrapper {
 
   public ReflectionWrapper(String name, int scopeIndex, Wrapper[] wrappers, Class[] guard, boolean[] mapGuard,
                            AccessibleObject method, Object[] arguments) {
-    super(name, scopeIndex, guard, mapGuard);
-    this.wrappers = wrappers;
+    super(name, scopeIndex, wrappers, guard, mapGuard);
     if (method instanceof Field) {
       this.method = null;
       this.field = (Field) method;
@@ -39,9 +34,10 @@ public class ReflectionWrapper extends GuardedWrapper {
 
   @Override
   public Object call(Object[] scopes) throws GuardException {
+    Object scope = null;
     try {
       guardCall(scopes);
-      Object scope = unwrap(scopes);
+      scope = unwrap(scopes);
       if (scope == null) return null;
       if (method == null) {
         return field.get(scope);
@@ -53,17 +49,6 @@ public class ReflectionWrapper extends GuardedWrapper {
     } catch (IllegalAccessException e) {
       throw new MustacheException("Failed to execute method: " + method, e);
     }
-  }
-
-  protected Object unwrap(Object[] scopes) throws GuardException {
-    Object scope = scopes[scopeIndex];
-    // The value may be buried by . notation
-    if (wrappers != null) {
-      for (Wrapper wrapper : wrappers) {
-        scope = wrapper.call(new Object[]{scope});
-      }
-    }
-    return scope;
   }
 
   public Method getMethod() {

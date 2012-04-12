@@ -11,12 +11,14 @@ import com.github.mustachejava.util.Wrapper;
 public class GuardedWrapper implements Wrapper {
   protected final String name;
   protected final int scopeIndex;
+  private Wrapper[] wrappers;
   protected final Class[] guard;
   protected final boolean[] mapGuard;
 
-  public GuardedWrapper(String name, int scopeIndex, Class[] guard, boolean[] mapGuard) {
+  public GuardedWrapper(String name, int scopeIndex, Wrapper[] wrappers, Class[] guard, boolean[] mapGuard) {
     this.name = name;
     this.scopeIndex = scopeIndex;
+    this.wrappers = wrappers;
     this.guard = guard;
     this.mapGuard = mapGuard;
   }
@@ -34,11 +36,17 @@ public class GuardedWrapper implements Wrapper {
     }
     for (int j = 0; j < length; j++) {
       Class guardClass = guard[j];
-      if (guardClass != null && !guardClass.isInstance(scopes[j])) {
+      Object scope = scopes[j];
+      if (guardClass != null && !guardClass.isInstance(scope)) {
         throw new GuardException();
       }
-      if (scopes[j] instanceof Map || (guardClass != null && guardClass.isAssignableFrom(Map.class))) {
-        Map map = (Map) scopes[j];
+      if (wrappers != null) {
+        for (Wrapper wrapper : wrappers) {
+          scope = wrapper.call(new Object[]{scope});
+        }
+      }
+      if (scope instanceof Map || (guardClass != null && guardClass.isAssignableFrom(Map.class))) {
+        Map map = (Map) scope;
         if (mapGuard[j]) {
           if (!map.containsKey(name)) {
             throw new GuardException();
@@ -50,5 +58,16 @@ public class GuardedWrapper implements Wrapper {
         }
       }
     }
+  }
+
+  protected Object unwrap(Object[] scopes) throws GuardException {
+    Object scope = scopes[scopeIndex];
+    // The value may be buried by . notation
+    if (wrappers != null) {
+      for (Wrapper wrapper : wrappers) {
+        scope = wrapper.call(new Object[]{scope});
+      }
+    }
+    return scope;
   }
 }
