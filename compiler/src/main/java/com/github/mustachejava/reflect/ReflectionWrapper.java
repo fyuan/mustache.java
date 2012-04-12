@@ -16,14 +16,16 @@ public class ReflectionWrapper extends GuardedWrapper {
   // Context
   protected int scopeIndex;
   protected Wrapper[] wrappers;
+  protected boolean[] mapGuard;
 
   // Dispatch
   protected final Method method;
   protected final Field field;
   protected final Object[] arguments;
 
-  public ReflectionWrapper(int scopeIndex, Wrapper[] wrappers, Class[] guard, AccessibleObject method, Object[] arguments) {
-    super(guard);
+  public ReflectionWrapper(String name, int scopeIndex, Wrapper[] wrappers, Class[] guard, boolean[] mapGuard,
+                           AccessibleObject method, Object[] arguments) {
+    super(name, scopeIndex, guard, mapGuard);
     this.wrappers = wrappers;
     if (method instanceof Field) {
       this.method = null;
@@ -33,11 +35,6 @@ public class ReflectionWrapper extends GuardedWrapper {
       this.field = null;
     }
     this.arguments = arguments;
-    this.scopeIndex = scopeIndex;
-  }
-
-  public ReflectionWrapper(ReflectionWrapper rw) {
-    this(rw.scopeIndex, rw.wrappers, rw.guard, rw.method == null ? rw.field : rw.method, rw.arguments);
   }
 
   @Override
@@ -62,8 +59,8 @@ public class ReflectionWrapper extends GuardedWrapper {
     Object scope = scopes[scopeIndex];
     // The value may be buried by . notation
     if (wrappers != null) {
-      for (int i = 0; i < wrappers.length; i++) {
-        scope = wrappers[i].call(new Object[] { scope });
+      for (Wrapper wrapper : wrappers) {
+        scope = wrapper.call(new Object[]{scope});
       }
     }
     return scope;

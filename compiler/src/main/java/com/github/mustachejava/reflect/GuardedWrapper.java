@@ -1,5 +1,7 @@
 package com.github.mustachejava.reflect;
 
+import java.util.Map;
+
 import com.github.mustachejava.util.GuardException;
 import com.github.mustachejava.util.Wrapper;
 
@@ -7,21 +9,16 @@ import com.github.mustachejava.util.Wrapper;
  * Wrapper that guards.
  */
 public class GuardedWrapper implements Wrapper {
+  protected final String name;
+  protected final int scopeIndex;
   protected final Class[] guard;
+  protected final boolean[] mapGuard;
 
-  public GuardedWrapper(Class[] guard) {
+  public GuardedWrapper(String name, int scopeIndex, Class[] guard, boolean[] mapGuard) {
+    this.name = name;
+    this.scopeIndex = scopeIndex;
     this.guard = guard;
-  }
-
-  public GuardedWrapper(Object[] scopes) {
-    int length = scopes.length;
-    guard = new Class[length];
-    for (int i = 0; i < length; i++) {
-      Object scope = scopes[i];
-      if (scope != null) {
-       guard[i] = scope.getClass();
-      }
-    }
+    this.mapGuard = mapGuard;
   }
 
   @Override
@@ -39,6 +36,18 @@ public class GuardedWrapper implements Wrapper {
       Class guardClass = guard[j];
       if (guardClass != null && !guardClass.isInstance(scopes[j])) {
         throw new GuardException();
+      }
+      if (scopes[j] instanceof Map || (guardClass != null && guardClass.isAssignableFrom(Map.class))) {
+        Map map = (Map) scopes[j];
+        if (mapGuard[j]) {
+          if (!map.containsKey(name)) {
+            throw new GuardException();
+          }
+        } else {
+          if (map.containsKey(name)) {
+            throw new GuardException();
+          }
+        }
       }
     }
   }
