@@ -103,6 +103,7 @@ public class MustacheParser {
               case '<':
               case '$': {
                 int line = currentLine.get();
+                mv.startTag(new TemplateContext(sm, em, file, line), variable);
                 final Mustache mustache = compile(br, variable, currentLine, file, sm, em);
                 int lines = currentLine.get() - line;
                 if (!onlywhitespace || lines == 0) {
@@ -127,6 +128,7 @@ public class MustacheParser {
                 break;
               }
               case '/': {
+                mv.endTag(new TemplateContext(sm, em, file, currentLine.get()), variable);
                 // Tag end
                 if (!onlywhitespace) {
                   write(mv, out, file, currentLine.intValue());

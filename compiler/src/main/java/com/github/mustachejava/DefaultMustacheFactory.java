@@ -172,8 +172,10 @@ public class DefaultMustacheFactory implements MustacheFactory {
     Mustache mustache = mustacheCache.get(name);
     if (mustache == null) {
       mustache = mc.compile(name);
-      mustacheCache.put(name, mustache);
-      mustache.init();
+      if (mustache != null) {
+        mustacheCache.put(name, mustache);
+        mustache.init();
+      }
     }
     return mustache;
   }

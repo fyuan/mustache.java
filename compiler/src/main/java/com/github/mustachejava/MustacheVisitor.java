@@ -20,4 +20,8 @@ public interface MustacheVisitor {
   // Extension
   void extend(TemplateContext templateContext, String variable, Mustache mustache);
   void name(TemplateContext templateContext, String variable, Mustache mustache);
+
+  // Parsing
+  void startTag(TemplateContext templateContext, String variable);
+  void endTag(TemplateContext templateContext, String variable);
 }

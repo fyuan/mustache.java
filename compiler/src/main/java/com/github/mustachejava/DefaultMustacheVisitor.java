@@ -39,6 +39,14 @@ public class DefaultMustacheVisitor implements MustacheVisitor {
   }
 
   @Override
+  public void startTag(TemplateContext templateContext, String variable) {
+  }
+
+  @Override
+  public void endTag(TemplateContext templateContext, String variable) {
+  }
+
+  @Override
   public void partial(TemplateContext templateContext, final String variable) {
     TemplateContext partialTC = new TemplateContext("{{", "}}", templateContext.file(), templateContext.line());
     list.add(new PartialCode(partialTC, cf, variable));

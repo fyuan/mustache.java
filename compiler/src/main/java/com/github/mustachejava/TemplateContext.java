@@ -28,4 +28,12 @@ public class TemplateContext {
   public int line() {
     return line;
   }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(file);
+    sb.append(":");
+    sb.append(line);
+    return sb.toString();
+  }
 }

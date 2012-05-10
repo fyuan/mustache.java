@@ -9,6 +9,7 @@
   <modules>
     <module>compiler</module>
     <module>handlebar</module>
+    <!--<module>scaffold</module>-->
     <!--<module>indy</module>-->
   </modules>
   <packaging>pom</packaging>
